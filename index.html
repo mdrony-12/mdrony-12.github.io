@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voogle Assistant</title>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.js"></script>
+    <style>
+        body {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+    
+        #responseArea {
+            margin-top: 30px;
+            width: 900px;
+            overflow-y: auto;
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    
+        .bubble {
+            display: inline-block;
+            max-width: 70%; /* Adjust the width of the chat bubbles */
+            margin-bottom: 20px;
+            border-radius: 10px;
+            padding: 10px;
+        }
+    
+        .response-bubble {
+        
+            text-align: left;
+            background-color: #ffffff;
+            margin-right: auto;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+    
+        .input-bubble {
+            text-align: left;
+            background-color: #ffffff;
+            margin-right: auto;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+    
+        h1 {
+            font-size: 65px;
+            margin-bottom: 0px;
+        }
+    
+        label[for="credit"] {
+            margin-bottom: 50px;
+        }
+    
+        #voiceInput {
+            width: 600px;
+            height: 30px;
+            text-transform: lowercase;
+            border: 2px solid #59a9de;;
+            border-radius: 90px;
+            margin-left: 7px;
+            padding-left: 5px;
+            padding-right: 5px;
+        }
+    
+        div[id="butn"] {
+            margin-top: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }    
+        .hint {
+        cursor: pointer;
+        background-color: rgb(0, 221, 255);
+        border-radius: 180px; /* Adjust the value to control the curvature */
+        padding: 5px 10px; /* Add padding to make it visually appealing */
+        display: inline-block; /* Ensure the background color wraps around the text */
+    }
+    .hint1 {
+        cursor: pointer;
+        background-color: rgb(0, 221, 255);
+        border-radius: 180px; /* Adjust the value to control the curvature */
+        padding: 5px 10px; /* Add padding to make it visually appealing */
+        margin-bottom: 5px;
+        display: inline-block; /* Ensure the background color wraps around the text */
+    }
+        </style>
+</head>
+<body>
+    <h1>Voogle Assistant</h1>
+    <div>
+        <label id="credit">By Rony</label>
+    </div>
+    <div id="responseArea"></div>
+    <div id="hint1">
+        <button id="s" class="hint1">Search for ...</button>
+        <button id="w" class="hint1">What's the time now</button>
+        <button id="n" class="hint1">Today's latest news</button>
+    </div>
+    <div id="hint" class+="hint">
+        <button id="who" class="hint">Who are you ?</button>
+        <button id="wh" class="hint">Who made you ?</button>
+        <button id="ho" class="hint">Tell a joke</button>
+        <button id="o" class="hint">Weather in Dhaka</button>
+    </div>
+
+    <div id="butn">
+        <img id="toggleButton"onclick="toggleListening()" src="mute.png" style="height: 30px; width: 30px;" toggleButton.title = "Muted. Press to Unmute">
+        <input type="text" id="voiceInput" placeholder="Message Voogle Assistant" title="Type sometihing">
+        <img onclick="clearInput()" src = 'cross.png' style="margin-right: 5px; height: 30px; width: 30px; " title="Clear">
+        <img onclick="processCommand()" src='send_meassage.png' style="height: 30px;width: 30px;" title="Send">
+    </div>
+
+    <script>
+                        document.getElementById('s').addEventListener('click', function () {
+            var hintCommand = "Search for something";
+            processCommand(hintCommand);
+        });
+                document.getElementById('who').addEventListener('click', function () {
+            var hintCommand = "who are you";
+            processCommand(hintCommand);
+        });
+        document.getElementById('n').addEventListener('click', function () {
+            var hintCommand = "today latest news";
+            processCommand(hintCommand);
+        });
+        document.getElementById('wh').addEventListener('click', function () {
+            var hintCommand = "who made you";
+            processCommand(hintCommand);
+        });
+        document.getElementById('ho').addEventListener('click', function () {
+            var hintCommand = "tell a joke";
+            processCommand(hintCommand);
+        });
+        document.getElementById('w').addEventListener('click', function () {
+            var hintCommand = "what's the time now";
+            processCommand(hintCommand);
+        });
+        document.getElementById('o').addEventListener('click', function () {
+            var hintCommand = "weather in dhaka";
+            processCommand(hintCommand);
+        });
+            document.getElementById('voiceInput').addEventListener('keydown', function (event) {
+        // Check if the pressed key is 'Enter' (key code 13)
+        if (event.keyCode === 13) {
+            event.preventDefault(); // Prevent the default behavior (e.g., form submission)
+            processCommand(); // Call the processCommand function
+        }
+    });
+
+        function clearInput() {
+            document.getElementById('voiceInput').value = '';
+        }
+        var socket = io(); // Create a Socket.IO connection
+
+        socket.on('response', function (data) {
+            var response = data.response;
+            displayResponse(response);
+        });
+
+        var recognition;
+        var isListening = false;
+
+        function toggleListening() {
+    var toggleButton = document.getElementById('toggleButton');
+
+    if (isListening) { 
+        stopListening();
+        toggleButton.src = "mute.png";
+        toggleButton.title = "Muted. Press to Unmute";
+    } else {
+        startListening();
+        toggleButton.src = "listen.png";
+        toggleButton.title = "Listening. Press to Mute";
+    }
+
+    isListening = !isListening;
+}
+
+        function startListening() {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.onresult = function (event) {
+                var interimTranscript = '';
+                for (var i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        var command = event.results[i][0].transcript;
+                        displayInputLetterByLetter(command);
+                        socket.emit('voice_input', { 'command': command });
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+            };
+
+            recognition.onend = function () {
+                if (isListening) {
+                    startListening();
+                }
+            };
+
+            recognition.start();
+        }
+
+        function stopListening() {
+            if (recognition) {
+                recognition.stop();
+            }
+        }
+
+        function displayResponse(response) {
+    var responseArea = document.getElementById('responseArea');
+    var chatBubble = document.createElement('div');
+    chatBubble.className = 'response-bubble';
+    responseArea.appendChild(chatBubble);
+
+    var responseSpan = document.createElement('span');
+    responseSpan.className = 'response';
+    responseSpan.innerHTML = '<strong>Voogle Assistant</strong>';
+    chatBubble.appendChild(responseSpan);
+
+    if (Array.isArray(response)) {
+        // If the response is an array, assume it's search results
+        response.forEach(function (result, index) {
+            var resultDiv = document.createElement('div');
+            resultDiv.innerHTML = `<a href="${result.link}" target="_blank">${result.title}</a><br>${result.snippet}`;
+            chatBubble.appendChild(resultDiv);
+
+            if (index < response.length - 1) {
+                chatBubble.appendChild(document.createElement('br'));
+            }
+        });
+    } else {
+        // If not, add the response line by line
+        var responseLines = response.split('\n');
+        responseLines.forEach(function (line, index) {
+            var lineDiv = document.createElement('div');
+            lineDiv.innerHTML = line;
+            chatBubble.appendChild(lineDiv);
+
+            if (index < responseLines.length - 1) {
+                chatBubble.appendChild(document.createElement('br'));
+            }
+        });
+    }
+
+    responseArea.scrollTop = responseArea.scrollHeight;
+}
+
+function typewriterEffect(text, element) {
+    var index = 0;
+
+    function addNextLetter() {
+        if (index < text.length) {
+            element.innerHTML += text.charAt(index);
+            index++;
+            setTimeout(addNextLetter, 50); // Adjust the delay between letters
+        }
+    }
+
+    addNextLetter();
+}
+
+
+
+function processCommand(command) {
+            var commandToProcess = command || document.getElementById('voiceInput').value;
+
+            displayInputLetterByLetter(commandToProcess);
+            displayInputBubble(commandToProcess);
+
+            document.getElementById('voiceInput').value = '';
+
+            $.ajax({
+                type: 'POST',
+                url: '/process_command',
+                contentType: 'application/json;charset=UTF-8',
+                data: JSON.stringify({ command: commandToProcess }),
+                success: function (response) {
+                    // Add a delay of 500 milliseconds (adjust as needed)
+                    setTimeout(function () {
+                        displayResponse(response);
+                    }, 2000);
+                }
+            });
+        }
+
+
+        function displayInputBubble(input) {
+    var responseArea = document.getElementById('responseArea');
+    var chatBubble = document.createElement('div');
+    chatBubble.className = 'input-bubble';
+    responseArea.appendChild(chatBubble);
+
+    var inputLines = input.split('\n'); // Split input into lines based on line breaks
+
+    var strongTag = document.createElement('strong');
+    strongTag.innerHTML = 'You';
+    chatBubble.appendChild(strongTag);
+
+    inputLines.forEach(function (line, index) {
+        var inputLineDiv = document.createElement('div');
+        inputLineDiv.className = 'input';
+
+        inputLineDiv.innerHTML = line;
+
+        chatBubble.appendChild(inputLineDiv);
+
+        if (index < inputLines.length - 1) {
+            // Add line break if it's not the last line
+            chatBubble.appendChild(document.createElement('br'));
+        }
+    });
+
+    responseArea.scrollTop = responseArea.scrollHeight;
+}
+
+
+
+        function displayInputLetterByLetter(input) {
+            var inputField = document.getElementById('voiceInput');
+            var responseArea = document.getElementById('responseArea');
+            inputField.value = input;
+        }
+
+    </script>
+</body>
+</html>
