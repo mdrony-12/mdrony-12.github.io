@@ -323,19 +323,19 @@ function processCommand(command) {
 
             document.getElementById('voiceInput').value = '';
 
-$.ajax({
-    type: 'POST',
-    url: 'https://rahatdev.pythonanywhere.com/process_command',
-    contentType: 'application/json;charset=UTF-8',
-    data: JSON.stringify({ command: commandToProcess }),
-    success: function (response) {
-        // Add a delay of 500 milliseconds (adjust as needed)
-        setTimeout(function () {
-            displayResponse(response);
-        }, 2000);
-    }
-});
-
+            $.ajax({
+                type: 'POST',
+                url: '/process_command',
+                contentType: 'application/json;charset=UTF-8',
+                data: JSON.stringify({ command: commandToProcess }),
+                success: function (response) {
+                    // Add a delay of 500 milliseconds (adjust as needed)
+                    setTimeout(function () {
+                        displayResponse(response);
+                    }, 2000);
+                }
+            });
+        }
 
 
         function displayInputBubble(input) {
