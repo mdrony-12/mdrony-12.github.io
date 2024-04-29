@@ -63,7 +63,6 @@
         #voiceInput {
             width: 600px;
             height: 30px;
-            text-transform: lowercase;
             border: 2px solid #59a9de;;
             border-radius: 90px;
             margin-left: 7px;
@@ -105,22 +104,65 @@
         <button id="s" class="hint1">Search for ...</button>
         <button id="w" class="hint1">What's the time now</button>
         <button id="n" class="hint1">Today's latest news</button>
+        <button id="ho" class="hint">Tell a joke</button>
     </div>
     <div id="hint" class+="hint">
         <button id="who" class="hint">Who are you ?</button>
         <button id="wh" class="hint">Who made you ?</button>
-        <button id="ho" class="hint">Tell a joke</button>
         <button id="o" class="hint">Weather in Dhaka</button>
+        <button id="oth" class="hint">Others</button>
+
     </div>
 
     <div id="butn">
         <img id="toggleButton"onclick="toggleListening()" src="mute.png" style="height: 30px; width: 30px;" toggleButton.title = "Muted. Press to Unmute">
-        <input type="text" id="voiceInput" placeholder="Message Voogle Assistant" title="Type sometihing">
+        <input type="text" id="voiceInput" placeholder="  Message Voogle Assistant" title="Type sometihing">
         <img onclick="clearInput()" src = 'cross.png' style="margin-right: 5px; height: 30px; width: 30px; " title="Clear">
         <img onclick="processCommand()" src='send_meassage.png' style="height: 30px;width: 30px;" title="Send">
     </div>
 
     <script>
+
+function showCommandsPopup() {
+    var commands = [
+        "Search for (your query)",
+        "What's the time now",
+        "Today's latest news",
+        "Who are you?",
+        "Who made you?",
+        "Tell a joke",
+        "Weather in Dhaka",
+        "What's your name",
+        "Want to be my friend ?",
+        "How are you ?",
+        "Who is your friend",
+        "Do you know my name ?",
+        "Who is (your query)",
+        "",
+        "\nI will more commands later.",
+        "This assistant is currently in demo version",
+        "Made by Rony"
+
+    
+
+
+        // Add more commands as needed
+    ];
+
+    // Create a string to hold all the commands
+    var commandsString = commands.join('\n');
+
+    // Open a pop-up window
+    var popupWindow = window.open('', 'Commands', 'width=400,height=300');
+
+    // Populate the pop-up window with commands
+    popupWindow.document.write("<pre>" + commandsString + "</pre>");
+}
+
+// Attach click event listener to the "Others" button
+document.getElementById('oth').addEventListener('click', function () {
+    showCommandsPopup();
+});
                         document.getElementById('s').addEventListener('click', function () {
             var hintCommand = "Search for something";
             processCommand(hintCommand);
